@@ -1,6 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { TerraTraceIcon } from "../components/common/TerraTraceLogo";
 import {
   Sparkles,
   ArrowRight,
@@ -13,7 +14,7 @@ import {
   Layers,
   Leaf,
   Check,
-} from 'lucide-react';
+} from "lucide-react";
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export function LandingPage() {
 
   const handleExploreDemo = async () => {
     await exploreDemo();
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   return (
@@ -32,8 +33,8 @@ export function LandingPage() {
       {/* Top Navigation */}
       <header className="relative z-20 border-b border-neutral-800/80 backdrop-blur-md px-6 py-4 max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-white text-neutral-900 flex items-center justify-center font-black text-sm font-mono">
-            TT
+          <div className="w-8 h-8 rounded-lg bg-neutral-950 border border-emerald-800/60 flex items-center justify-center shadow-sm shadow-emerald-950/40">
+            <TerraTraceIcon className="w-5 h-5" />
           </div>
           <div>
             <span className="font-bold text-base tracking-tight text-white font-display">
@@ -48,7 +49,7 @@ export function LandingPage() {
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate("/dashboard")}
               className="px-4 py-2 rounded-xl bg-white text-neutral-900 text-xs font-semibold hover:bg-neutral-100 transition-colors flex items-center gap-1.5"
             >
               <span>Go to Dashboard</span>
@@ -57,7 +58,7 @@ export function LandingPage() {
           ) : (
             <>
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate("/login")}
                 className="text-xs font-medium text-neutral-400 hover:text-white px-3 py-2 transition-colors"
               >
                 Sign In
@@ -78,7 +79,9 @@ export function LandingPage() {
       <section className="relative z-10 pt-20 pb-16 px-6 max-w-5xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-800/90 border border-neutral-700/80 text-xs text-neutral-300 mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-semibold text-emerald-400">TerraTrace v1.0</span>
+          <span className="font-semibold text-emerald-400">
+            TerraTrace v1.0
+          </span>
           <span className="text-neutral-500">•</span>
           <span>Next-Gen Sustainability Intelligence</span>
         </div>
@@ -91,7 +94,11 @@ export function LandingPage() {
         </h1>
 
         <p className="mt-6 text-base sm:text-lg text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-          TerraTrace is a modern sustainability intelligence platform that tracks your everyday activities, computes deterministic carbon footprints, identifies your biggest emissions drivers, and lets you simulate lifestyle changes in the <strong>TerraTrace Future Lab</strong>.
+          TerraTrace is a modern sustainability intelligence platform that
+          tracks your everyday activities, computes deterministic carbon
+          footprints, identifies your biggest emissions drivers, and lets you
+          simulate lifestyle changes in the{" "}
+          <strong>TerraTrace Future Lab</strong>.
         </p>
 
         {/* Action Buttons */}
@@ -104,7 +111,7 @@ export function LandingPage() {
             <ArrowRight className="w-4 h-4" />
           </button>
           <button
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate("/signup")}
             className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-neutral-800/80 hover:bg-neutral-800 text-white font-semibold text-sm border border-neutral-700/80 transition-all flex items-center justify-center gap-2"
           >
             <span>Get Started Free</span>
@@ -126,7 +133,10 @@ export function LandingPage() {
               </span>
             </div>
             <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-              Move beyond passive counting. Adjust interactive lifestyle variables—from vehicle kilometers and poultry intake to grid power—and immediately forecast cumulative 1-Month, 6-Month, and 1-Year carbon reduction trajectories.
+              Move beyond passive counting. Adjust interactive lifestyle
+              variables—from vehicle kilometers and poultry intake to grid
+              power—and immediately forecast cumulative 1-Month, 6-Month, and
+              1-Year carbon reduction trajectories.
             </p>
           </div>
           <button
@@ -158,7 +168,9 @@ export function LandingPage() {
               Deterministic Emission Engine
             </h3>
             <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-              No hallucinatory AI calculations. Powered by standardized DEFRA & IPCC conversion coefficients across transit, electricity, diet, and waste.
+              No hallucinatory AI calculations. Powered by standardized DEFRA &
+              IPCC conversion coefficients across transit, electricity, diet,
+              and waste.
             </p>
           </div>
 
@@ -170,7 +182,8 @@ export function LandingPage() {
               Natural Language Quick Trace
             </h3>
             <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-              Type naturally: "I drove my car for 18 km today". Automated regex extraction identifies mode, quantity, and unit with zero friction.
+              Type naturally: "I drove my car for 18 km today". Automated regex
+              extraction identifies mode, quantity, and unit with zero friction.
             </p>
           </div>
 
@@ -182,7 +195,9 @@ export function LandingPage() {
               Trace AI Telemetry Assistant
             </h3>
             <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-              Grounded conversational assistant that inspects your real weekly activity telemetry to answer: "Why is my footprint high?" and "What is my biggest opportunity?".
+              Grounded conversational assistant that inspects your real weekly
+              activity telemetry to answer: "Why is my footprint high?" and
+              "What is my biggest opportunity?".
             </p>
           </div>
         </div>
@@ -190,7 +205,10 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer className="relative z-10 py-8 px-6 border-t border-neutral-800 text-center text-xs text-neutral-500">
-        <p>TerraTrace — Sustainability Intelligence Platform • DEFRA / IPCC Deterministic Modeling</p>
+        <p>
+          TerraTrace — Sustainability Intelligence Platform • DEFRA / IPCC
+          Deterministic Modeling
+        </p>
       </footer>
     </div>
   );

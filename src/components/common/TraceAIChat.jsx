@@ -1,33 +1,33 @@
-import React, { useState } from 'react';
-import { Bot, Send, Sparkles, User, HelpCircle, Loader2 } from 'lucide-react';
-import { api } from '../../api/client';
+import React, { useState } from "react";
+import { Bot, Send, Sparkles, User, HelpCircle, Loader2 } from "lucide-react";
+import { api } from "../../api/client";
 
 const SAMPLE_QUESTIONS = [
-  'Why is my footprint high?',
-  'What is my biggest impact source?',
-  'How can I reduce my footprint by 20%?',
-  'What happens if I reduce my car travel?',
-  'Which activity should I change first?',
+  "Why is my footprint high?",
+  "What is my biggest impact source?",
+  "How can I reduce my footprint by 20%?",
+  "What happens if I reduce my car travel?",
+  "Which activity should I change first?",
 ];
 
 export function TraceAIChat() {
   const [messages, setMessages] = useState([
     {
-      role: 'assistant',
+      role: "assistant",
       text: "Hello! I am **Trace AI**, your sustainability intelligence assistant. I analyze your actual carbon telemetry to answer questions about your emission drivers, reduction opportunities, and lifestyle habit tradeoffs. How can I help you today?",
-      source: 'TerraTrace Telemetry Core',
+      source: "TerraTrace Telemetry Core",
     },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSend = async (questionText) => {
     const q = questionText || input;
     if (!q.trim() || loading) return;
 
-    const userMsg = { role: 'user', text: q.trim() };
+    const userMsg = { role: "user", text: q.trim() };
     setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+    setInput("");
     setLoading(true);
 
     try {
@@ -35,7 +35,7 @@ export function TraceAIChat() {
       setMessages((prev) => [
         ...prev,
         {
-          role: 'assistant',
+          role: "assistant",
           text: response.answer,
           source: response.source,
           topic: response.topic,
@@ -45,9 +45,9 @@ export function TraceAIChat() {
       setMessages((prev) => [
         ...prev,
         {
-          role: 'assistant',
+          role: "assistant",
           text: "I encountered an error analyzing your activities. Please try rephrasing your question.",
-          source: 'Error Handler',
+          source: "Error Handler",
         },
       ]);
     } finally {
@@ -84,18 +84,18 @@ export function TraceAIChat() {
         {messages.map((m, idx) => (
           <div
             key={idx}
-            className={`flex items-start gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex items-start gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
           >
-            {m.role === 'assistant' && (
+            {m.role === "assistant" && (
               <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
                 T
               </div>
             )}
             <div
               className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed ${
-                m.role === 'user'
-                  ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 font-medium'
-                  : 'bg-neutral-50 dark:bg-neutral-800/70 text-neutral-800 dark:text-neutral-200 border border-neutral-200/60 dark:border-neutral-700/60'
+                m.role === "user"
+                  ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 font-medium"
+                  : "bg-neutral-50 dark:bg-neutral-800/70 text-neutral-800 dark:text-neutral-200 border border-neutral-200/60 dark:border-neutral-700/60"
               }`}
             >
               <div className="whitespace-pre-line">{m.text}</div>
@@ -106,7 +106,7 @@ export function TraceAIChat() {
                 </div>
               )}
             </div>
-            {m.role === 'user' && (
+            {m.role === "user" && (
               <div className="w-6 h-6 rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
                 U
               </div>

@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { ArrowRight, Lock, Mail, Sparkles, Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { ArrowRight, Lock, Mail, Sparkles, Loader2 } from "lucide-react";
+import { TerraTraceIcon } from "../components/common/TerraTraceLogo";
 
 export function LoginPage() {
-  const [email, setEmail] = useState('alex.morgan@terratrace.earth');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState("alex.morgan@terratrace.earth");
+  const [password, setPassword] = useState("password123");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { login, exploreDemo } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
-      setError('Invalid credentials or authentication error');
+      setError("Invalid credentials or authentication error");
     } finally {
       setLoading(false);
     }
@@ -27,7 +28,7 @@ export function LoginPage() {
 
   const handleDemoMode = async () => {
     await exploreDemo();
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   return (
@@ -35,11 +36,11 @@ export function LoginPage() {
       <div className="w-full max-w-md rounded-2xl bg-neutral-950 border border-neutral-800 p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Logo */}
         <div className="text-center space-y-2">
-          <div 
-            onClick={() => navigate('/')}
-            className="w-10 h-10 rounded-xl bg-white text-neutral-950 flex items-center justify-center font-mono font-black text-base mx-auto cursor-pointer"
+          <div
+            onClick={() => navigate("/")}
+            className="w-12 h-12 rounded-xl bg-neutral-900 border border-emerald-800/60 flex items-center justify-center mx-auto cursor-pointer shadow-md shadow-emerald-950/50 hover:border-emerald-500 transition-colors"
           >
-            TT
+            <TerraTraceIcon className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold font-display tracking-tight text-white">
             Welcome to TerraTrace
@@ -118,8 +119,11 @@ export function LoginPage() {
           </button>
 
           <p className="text-xs text-neutral-500">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-emerald-400 hover:underline font-semibold">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="text-emerald-400 hover:underline font-semibold"
+            >
               Create account
             </Link>
           </p>
