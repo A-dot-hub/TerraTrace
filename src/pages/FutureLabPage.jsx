@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../api/client';
-import { LifestyleSlider } from '../components/simulator/LifestyleSlider';
-import { ComparisonBarChart } from '../components/simulator/ComparisonBarChart';
-import { ProjectionChart } from '../components/simulator/ProjectionChart';
-import { SavedScenarios } from '../components/simulator/SavedScenarios';
+import React, { useState, useEffect } from "react";
+import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
+import { LifestyleSlider } from "../components/simulator/LifestyleSlider";
+import { ComparisonBarChart } from "../components/simulator/ComparisonBarChart";
+import { ProjectionChart } from "../components/simulator/ProjectionChart";
+import { SavedScenarios } from "../components/simulator/SavedScenarios";
+import { EarthSimulation } from "../components/simulator/EarthSimulation";
 import {
   FlaskConical,
   Play,
@@ -19,9 +21,13 @@ import {
   Check,
   Calendar,
   Layers,
-} from 'lucide-react';
+  Globe2,
+  Loader2,
+} from "lucide-react";
 
 export function FutureLabPage() {
+  const { user } = useAuth();
+
   // Current baseline habit values
   const [baseline] = useState({
     carKm: 180,
@@ -42,10 +48,11 @@ export function FutureLabPage() {
 
   const [simulationResult, setSimulationResult] = useState(null);
   const [scenarios, setScenarios] = useState([]);
-  const [scenarioName, setScenarioName] = useState('');
+  const [scenarioName, setScenarioName] = useState("");
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Run simulation calculation
   const runSimulation = async (values = simulated) => {
@@ -69,41 +76,64 @@ export function FutureLabPage() {
     }
   };
 
+  // Initial load
   useEffect(() => {
     runSimulation(simulated);
     loadScenarios();
   }, []);
+
+  // Reactive simulation as sliders change for real-time 3D Earth feedback
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      runSimulation(simulated);
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [simulated]);
 
   const handleReset = () => {
     setSimulated({ ...baseline });
     runSimulation(baseline);
   };
 
+  /**
+   * Asynchronous function to persist simulated scenario to FastAPI & MongoDB Atlas
+   */
   const handleSaveScenario = async (e) => {
     e.preventDefault();
     if (!scenarioName.trim() || !simulationResult) return;
 
-    await api.saveScenario({
-      name: scenarioName.trim(),
-      inputs: { ...simulated },
-      currentFootprint: simulationResult.currentFootprint,
-      simulatedFootprint: simulationResult.simulatedFootprint,
-      reductionPercent: simulationResult.percentageReduction,
-      annualSavingsKg: simulationResult.annualReduction,
-    });
+    setIsSaving(true);
+    try {
+      await api.saveScenario({
+        userId: user?.id || "demo-user",
+        scenarioName: scenarioName.trim(),
+        name: scenarioName.trim(),
+        currentFootprint: simulationResult.currentFootprint,
+        simulatedFootprint: simulationResult.simulatedFootprint,
+        reductionPercent: simulationResult.percentageReduction,
+        annualSavingsKg: simulationResult.annualReduction,
+        habitVariables: { ...simulated },
+        inputs: { ...simulated },
+      });
 
-    setScenarioName('');
-    setSaveModalOpen(false);
-    setSavedNotice(true);
-    setTimeout(() => setSavedNotice(false), 3000);
-    await loadScenarios();
+      setScenarioName("");
+      setSaveModalOpen(false);
+      setSavedNotice(true);
+      setTimeout(() => setSavedNotice(false), 3500);
+      await loadScenarios();
+    } catch (err) {
+      console.error("Failed to save scenario:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLoadSavedScenario = (scen) => {
-    if (scen.inputs) {
-      setSimulated(scen.inputs);
-      runSimulation(scen.inputs);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    const habits = scen.habitVariables || scen.inputs;
+    if (habits) {
+      setSimulated(habits);
+      runSimulation(habits);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -126,7 +156,8 @@ export function FutureLabPage() {
                 TerraTrace Future Lab
               </h1>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                What-if lifestyle scenario simulator • Forecast immediate, 6-month & 1-year carbon trajectories
+                Interactive 3D Earth simulation • What-if carbon scenarios
+                connected to FastAPI & MongoDB Atlas
               </p>
             </div>
           </div>
@@ -135,14 +166,14 @@ export function FutureLabPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleReset}
-            className="px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset to Baseline</span>
           </button>
           <button
             onClick={() => setSaveModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-neutral-100 dark:hover:bg-white text-white dark:text-neutral-900 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs"
+            className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-neutral-100 dark:hover:bg-white text-white dark:text-neutral-900 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
           >
             <Bookmark className="w-3.5 h-3.5" />
             <span>Save Scenario</span>
@@ -152,10 +183,20 @@ export function FutureLabPage() {
 
       {savedNotice && (
         <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs font-semibold flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-600" />
-          <span>Scenario saved successfully to MongoDB collection!</span>
+          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>
+            Scenario saved successfully to MongoDB Atlas scenarios collection!
+          </span>
         </div>
       )}
+
+      {/* 3D Interactive Planetary Simulation Viewport */}
+      <div className="space-y-2">
+        <EarthSimulation
+          currentFootprint={simulationResult?.currentFootprint || 58.5}
+          simulatedFuture={simulationResult?.simulatedFootprint || 43.8}
+        />
+      </div>
 
       {/* Main Simulator Control Center */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -182,7 +223,9 @@ export function FutureLabPage() {
               icon={Car}
               currentValue={baseline.carKm}
               simulatedValue={simulated.carKm}
-              onChange={(val) => setSimulated((prev) => ({ ...prev, carKm: val }))}
+              onChange={(val) =>
+                setSimulated((prev) => ({ ...prev, carKm: val }))
+              }
               unit="km/wk"
               min={0}
               max={300}
@@ -196,7 +239,9 @@ export function FutureLabPage() {
               icon={Train}
               currentValue={baseline.metroKm}
               simulatedValue={simulated.metroKm}
-              onChange={(val) => setSimulated((prev) => ({ ...prev, metroKm: val }))}
+              onChange={(val) =>
+                setSimulated((prev) => ({ ...prev, metroKm: val }))
+              }
               unit="km/wk"
               min={0}
               max={150}
@@ -210,7 +255,9 @@ export function FutureLabPage() {
               icon={Utensils}
               currentValue={baseline.chickenMeals}
               simulatedValue={simulated.chickenMeals}
-              onChange={(val) => setSimulated((prev) => ({ ...prev, chickenMeals: val }))}
+              onChange={(val) =>
+                setSimulated((prev) => ({ ...prev, chickenMeals: val }))
+              }
               unit="meals/wk"
               min={0}
               max={14}
@@ -224,7 +271,9 @@ export function FutureLabPage() {
               icon={Zap}
               currentValue={baseline.electricityKwh}
               simulatedValue={simulated.electricityKwh}
-              onChange={(val) => setSimulated((prev) => ({ ...prev, electricityKwh: val }))}
+              onChange={(val) =>
+                setSimulated((prev) => ({ ...prev, electricityKwh: val }))
+              }
               unit="kWh/wk"
               min={10}
               max={100}
@@ -238,7 +287,9 @@ export function FutureLabPage() {
               icon={Trash2}
               currentValue={baseline.foodWasteKg}
               simulatedValue={simulated.foodWasteKg}
-              onChange={(val) => setSimulated((prev) => ({ ...prev, foodWasteKg: val }))}
+              onChange={(val) =>
+                setSimulated((prev) => ({ ...prev, foodWasteKg: val }))
+              }
               unit="kg/wk"
               min={0}
               max={10}
@@ -251,9 +302,13 @@ export function FutureLabPage() {
               <button
                 onClick={() => runSimulation(simulated)}
                 disabled={isSimulating}
-                className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-emerald-500/20 active:scale-[0.99]"
+                className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-emerald-500/20 active:scale-[0.99] cursor-pointer"
               >
-                <Play className="w-4 h-4 fill-white" />
+                {isSimulating ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <Play className="w-4 h-4 fill-white" />
+                )}
                 <span>Simulate Future</span>
               </button>
             </div>
@@ -274,7 +329,9 @@ export function FutureLabPage() {
                   <span className="text-2xl sm:text-3xl font-extrabold font-mono text-neutral-900 dark:text-white">
                     {simulationResult.currentFootprint}
                   </span>
-                  <span className="text-xs text-neutral-500 font-medium">kg/wk</span>
+                  <span className="text-xs text-neutral-500 font-medium">
+                    kg/wk
+                  </span>
                 </div>
                 <div className="text-[11px] text-neutral-400 mt-1">
                   Baseline weekly footprint
@@ -290,7 +347,9 @@ export function FutureLabPage() {
                   <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
                     {simulationResult.simulatedFootprint}
                   </span>
-                  <span className="text-xs text-neutral-500 font-medium">kg/wk</span>
+                  <span className="text-xs text-neutral-500 font-medium">
+                    kg/wk
+                  </span>
                 </div>
                 <div className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-1">
                   Target future lifestyle
@@ -342,7 +401,8 @@ export function FutureLabPage() {
               Save Future Lab Scenario
             </h3>
             <p className="text-xs text-neutral-400">
-              Save this configuration to your account for future comparison and goal setting.
+              Save this configuration to MongoDB Atlas for future comparison,
+              historical tracing, and goal setting.
             </p>
 
             <form onSubmit={handleSaveScenario} className="space-y-4">
@@ -361,23 +421,35 @@ export function FutureLabPage() {
               </div>
 
               <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 text-xs font-mono text-neutral-600 dark:text-neutral-300 space-y-1">
-                <div>Footprint: {simulationResult?.simulatedFootprint} kg/wk (-{simulationResult?.percentageReduction}%)</div>
-                <div>Annual Savings: -{simulationResult?.annualReduction} kg CO₂e</div>
+                <div>
+                  Footprint: {simulationResult?.simulatedFootprint} kg/wk (-
+                  {simulationResult?.percentageReduction}%)
+                </div>
+                <div>
+                  Annual Savings: -{simulationResult?.annualReduction} kg CO₂e
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setSaveModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  disabled={isSaving}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
+                  disabled={isSaving}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
-                  Save Scenario
+                  {isSaving && (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                  )}
+                  <span>
+                    {isSaving ? "Saving to Atlas..." : "Save Scenario"}
+                  </span>
                 </button>
               </div>
             </form>

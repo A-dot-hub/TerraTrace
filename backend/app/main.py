@@ -38,6 +38,7 @@ app.include_router(activities.router, prefix=settings.API_PREFIX)
 app.include_router(analytics.router, prefix=settings.API_PREFIX)
 app.include_router(simulator.router, prefix=settings.API_PREFIX)
 app.include_router(scenarios.router, prefix=settings.API_PREFIX)
+app.include_router(scenarios.router, prefix="/api/v1")  # Explicit /api/v1/scenarios endpoint
 app.include_router(recommendations.router, prefix=settings.API_PREFIX)
 app.include_router(goals.router, prefix=settings.API_PREFIX)
 app.include_router(environment.router, prefix=settings.API_PREFIX)

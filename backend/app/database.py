@@ -4,8 +4,18 @@ from backend.app.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Motor async client support
+try:
+    from motor.motor_asyncio import AsyncIOMotorClient
+    HAS_MOTOR = True
+except ImportError:
+    AsyncIOMotorClient = None
+    HAS_MOTOR = False
+
 client = None
 db = None
+async_client = None
+async_db = None
 
 # Default in-memory cache if MongoDB is offline or running locally without Atlas
 in_memory_store = {
@@ -40,3 +50,25 @@ def get_database():
         db = None
 
     return db
+
+def get_async_database():
+    """Returns the motor AsyncIOMotorDatabase instance for async queries."""
+    global async_client, async_db
+    if async_db is not None:
+        return async_db
+
+    if HAS_MOTOR and settings.MONGODB_URI:
+        try:
+            async_client = AsyncIOMotorClient(
+                settings.MONGODB_URI,
+                serverSelectionTimeoutMS=2000,
+                connectTimeoutMS=2000
+            )
+            async_db = async_client[settings.DATABASE_NAME]
+            logger.info("Successfully initialized Motor AsyncIOMotorClient (%s)", settings.DATABASE_NAME)
+            return async_db
+        except Exception as e:
+            logger.warning("Could not initialize Motor client: %s", str(e))
+            async_db = None
+
+    return None
