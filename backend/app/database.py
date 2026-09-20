@@ -60,7 +60,7 @@ def init_and_seed_db(database=None):
     import datetime
     from backend.app.utils.security import hash_password
 
-    target_db = target_db = database if database is not None else get_database()
+    target_db  = database if database is not None else get_database()
     if target_db is None:
         logger.warning("Database unavailable for seeding. Using in-memory store.")
         return

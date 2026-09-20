@@ -2,6 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.config import settings
+
 from backend.app.database import get_database, init_and_seed_db, in_memory_store
 from backend.app.routes import (
     auth,
@@ -72,6 +73,9 @@ def on_startup():
     if db is not None:
         logger.info("MongoDB Atlas connected to '%s'", settings.DATABASE_NAME)
         # Materialize database and seed baseline collections
+        
+        print("ACTUAL URI:", settings.MONGODB_URI)
+        print("ACTUAL DB:", settings.DATABASE_NAME)
         init_and_seed_db(db)
     else:
         logger.info("Operating in resilient local fallback mode.")

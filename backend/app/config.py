@@ -1,8 +1,12 @@
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
+# Automatically finds the .env file regardless of where you run the start command
+load_dotenv(find_dotenv())
 
+env_path = find_dotenv()
+print("DEBUG: Found .env file at ->", env_path)
+load_dotenv(env_path)
 class Settings:
     PROJECT_NAME: str = "TerraTrace"
     VERSION: str = "1.0.0"
