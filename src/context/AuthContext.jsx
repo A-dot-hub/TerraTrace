@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api, initLocalDataIfEmpty } from '../api/client';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { api, initLocalDataIfEmpty } from "../api/client";
 
 const AuthContext = createContext();
 
@@ -10,24 +10,36 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function checkAuth() {
       initLocalDataIfEmpty();
-      const token = localStorage.getItem('terratrace_token');
+      const token = localStorage.getItem("terratrace_token");
+      const savedUserStr = localStorage.getItem("terratrace_user");
+      let localUser = null;
+      if (savedUserStr) {
+        try {
+          localUser = JSON.parse(savedUserStr);
+        } catch {
+          localUser = null;
+        }
+      }
+
       if (token) {
         try {
           const currentUser = await api.getCurrentUser();
-          setUser(currentUser);
+          if (currentUser && currentUser.email) {
+            setUser(currentUser);
+          } else if (localUser) {
+            setUser(localUser);
+          }
         } catch {
-          setUser({ id: 'demo-user', name: 'Alex Morgan', email: 'alex.morgan@terratrace.earth' });
-        }
-      } else {
-        // Check local saved user
-        const savedUser = localStorage.getItem('terratrace_user');
-        if (savedUser) {
-          try {
-            setUser(JSON.parse(savedUser));
-          } catch {
+          if (localUser) {
+            setUser(localUser);
+          } else {
             setUser(null);
           }
         }
+      } else if (localUser) {
+        setUser(localUser);
+      } else {
+        setUser(null);
       }
       setLoading(false);
     }
@@ -48,21 +60,21 @@ export function AuthProvider({ children }) {
 
   const exploreDemo = async () => {
     const demoUser = {
-      id: 'demo-user',
-      name: 'Alex Morgan (Demo)',
-      email: 'alex.morgan@terratrace.earth',
+      id: "demo-user",
+      name: "Alex Morgan (Demo)",
+      email: "alex.morgan@terratrace.earth",
       isDemo: true,
     };
-    localStorage.setItem('terratrace_token', 'jwt-demo-session-token');
-    localStorage.setItem('terratrace_user', JSON.stringify(demoUser));
+    localStorage.setItem("terratrace_token", "jwt-demo-session-token");
+    localStorage.setItem("terratrace_user", JSON.stringify(demoUser));
     await api.loadDemoData();
     setUser(demoUser);
     return demoUser;
   };
 
   const logout = () => {
-    localStorage.removeItem('terratrace_token');
-    localStorage.removeItem('terratrace_user');
+    localStorage.removeItem("terratrace_token");
+    localStorage.removeItem("terratrace_user");
     setUser(null);
   };
 
@@ -86,7 +98,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 }

@@ -5,8 +5,8 @@ import { ArrowRight, Lock, Mail, Sparkles, Loader2 } from "lucide-react";
 import { TerraTraceIcon } from "../components/common/TerraTraceLogo";
 
 export function LoginPage() {
-  const [email, setEmail] = useState("alex.morgan@terratrace.earth");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { login, exploreDemo } = useAuth();
@@ -20,10 +20,16 @@ export function LoginPage() {
       await login(email, password);
       navigate("/dashboard");
     } catch (err) {
-      setError("Invalid credentials or authentication error");
+      setError(err.message || "Invalid credentials or authentication error");
     } finally {
       setLoading(false);
     }
+  };
+
+  const fillDemoCredentials = () => {
+    setEmail("alex.morgan@terratrace.earth");
+    setPassword("password123");
+    setError("");
   };
 
   const handleDemoMode = async () => {
@@ -108,11 +114,22 @@ export function LoginPage() {
         </form>
 
         {/* Quick Demo Access */}
-        <div className="pt-2 border-t border-neutral-900 text-center space-y-3">
+        <div className="pt-2 border-t border-neutral-900 text-center space-y-2">
+          <div className="flex items-center justify-between text-[11px] text-neutral-400 px-1">
+            <span>Testing with demo?</span>
+            <button
+              type="button"
+              onClick={fillDemoCredentials}
+              className="text-emerald-400 hover:text-emerald-300 underline font-medium cursor-pointer"
+            >
+              Fill Demo Credentials
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={handleDemoMode}
-            className="w-full py-2.5 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-2 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span>Instant Demo Access (Explore Demo)</span>

@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.config import settings
-from backend.app.database import get_database, in_memory_store
+from backend.app.database import get_database, init_and_seed_db, in_memory_store
 from backend.app.routes import (
     auth,
     activities,
@@ -12,6 +12,7 @@ from backend.app.routes import (
     recommendations,
     goals,
     environment,
+    demo,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +43,8 @@ app.include_router(scenarios.router, prefix="/api/v1")  # Explicit /api/v1/scena
 app.include_router(recommendations.router, prefix=settings.API_PREFIX)
 app.include_router(goals.router, prefix=settings.API_PREFIX)
 app.include_router(environment.router, prefix=settings.API_PREFIX)
+app.include_router(demo.router, prefix=settings.API_PREFIX)
+app.include_router(demo.router, prefix="/api")  # Guaranteed /api/demo/seed
 
 @app.get("/")
 def root():
@@ -68,5 +71,7 @@ def on_startup():
     db = get_database()
     if db is not None:
         logger.info("MongoDB Atlas connected to '%s'", settings.DATABASE_NAME)
+        # Materialize database and seed baseline collections
+        init_and_seed_db(db)
     else:
         logger.info("Operating in resilient local fallback mode.")

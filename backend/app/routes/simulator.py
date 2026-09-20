@@ -4,6 +4,7 @@ from backend.app.services.projection_engine import compute_simulation_projection
 
 router = APIRouter(prefix="/simulator", tags=["Future Lab Simulator"])
 
+@router.post("/calculate")
 @router.post("/simulate")
 def simulate_future(req: SimulationRequest):
     # Baseline lifestyle parameters (standard week)

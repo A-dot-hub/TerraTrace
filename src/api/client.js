@@ -237,57 +237,92 @@ export const api = {
       const res = await apiClient.post("/api/auth/login", { email, password });
       if (res.data?.access_token) {
         localStorage.setItem("terratrace_token", res.data.access_token);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(res.data.user));
+        if (res.data.user) {
+          localStorage.setItem(
+            STORAGE_KEYS.USER,
+            JSON.stringify(res.data.user),
+          );
+        }
       }
       return res.data;
-    } catch {
-      // Fallback auth
-      const mockUser = {
-        id: "user-demo",
-        email: email || "alex.morgan@terratrace.earth",
-        name: email ? email.split("@")[0] : "Alex Morgan",
-        role: "user",
-      };
-      localStorage.setItem("terratrace_token", "jwt-demo-token-terratrace");
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(mockUser));
-      initLocalDataIfEmpty();
-      return { access_token: "jwt-demo-token-terratrace", user: mockUser };
+    } catch (err) {
+      // Throw server validation or credential error so UI displays error message
+      if (err.response?.data?.detail) {
+        throw new Error(err.response.data.detail);
+      }
+      // Demo account fallback if backend is unreachable
+      if (email === "alex.morgan@terratrace.earth") {
+        const mockUser = {
+          id: "demo-user-id",
+          email: "alex.morgan@terratrace.earth",
+          name: "Alex Morgan",
+          role: "user",
+        };
+        localStorage.setItem("terratrace_token", "jwt-demo-token-terratrace");
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(mockUser));
+        return { access_token: "jwt-demo-token-terratrace", user: mockUser };
+      }
+      throw new Error(
+        err.message || "Unable to connect to authentication service",
+      );
     }
   },
 
   async signup(name, email, password) {
     try {
-      const res = await apiClient.post("/api/auth/signup", {
-        name,
-        email,
-        password,
-      });
+      let res;
+      try {
+        res = await apiClient.post("/api/auth/signup", {
+          name,
+          email,
+          password,
+        });
+      } catch (err) {
+        if (err.response?.status === 404) {
+          res = await apiClient.post("/api/auth/register", {
+            name,
+            email,
+            password,
+          });
+        } else {
+          throw err;
+        }
+      }
       if (res.data?.access_token) {
         localStorage.setItem("terratrace_token", res.data.access_token);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(res.data.user));
+        if (res.data.user) {
+          localStorage.setItem(
+            STORAGE_KEYS.USER,
+            JSON.stringify(res.data.user),
+          );
+        }
       }
       return res.data;
-    } catch {
-      const mockUser = { id: `user-${Date.now()}`, email, name, role: "user" };
-      localStorage.setItem("terratrace_token", "jwt-demo-token-terratrace");
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(mockUser));
-      initLocalDataIfEmpty();
-      return { access_token: "jwt-demo-token-terratrace", user: mockUser };
+    } catch (err) {
+      if (err.response?.data?.detail) {
+        throw new Error(err.response.data.detail);
+      }
+      throw new Error(err.message || "Registration failed");
     }
   },
 
   async getCurrentUser() {
     try {
       const res = await apiClient.get("/api/auth/me");
-      return res.data;
+      if (res.data) {
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(res.data));
+        return res.data;
+      }
     } catch {
-      const user = getLocal(STORAGE_KEYS.USER, {
-        id: "demo-user",
-        name: "Alex Morgan",
-        email: "alex.morgan@terratrace.earth",
-      });
-      return user;
+      // Silently fall back to cached user in localStorage
     }
+    const cached = getLocal(STORAGE_KEYS.USER, null);
+    if (cached) return cached;
+    return {
+      id: "demo-user",
+      name: "Alex Morgan",
+      email: "alex.morgan@terratrace.earth",
+    };
   },
 
   // Seed / Demo Mode

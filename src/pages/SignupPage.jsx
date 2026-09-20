@@ -21,7 +21,7 @@ export function SignupPage() {
       await signup(name, email, password);
       navigate("/dashboard");
     } catch (err) {
-      setError("Registration error. Please try again.");
+      setError(err.message || "Registration error. Please try again.");
     } finally {
       setLoading(false);
     }
